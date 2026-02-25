@@ -155,6 +155,9 @@ body.locked .app-header, body.locked .dashboard-container { filter: blur(10px); 
 .user-message { align-self: flex-end; background: rgba(255, 255, 255, 0.05); border-left: 2px solid var(--text-muted); }
 .chiron-message { align-self: flex-start; background: rgba(55, 23, 110, 0.2); border-left: 2px solid var(--accent-chiron); }
 .bridge-message { align-self: flex-start; background: rgba(48, 195, 195, 0.1); border-left: 2px solid var(--accent-nexus); }
+.sine-message { align-self: flex-start; background: rgba(220, 20, 60, 0.1); border-left: 2px solid crimson; }
+.promptsmith-message { align-self: flex-start; background: rgba(255, 140, 0, 0.1); border-left: 2px solid darkorange; }
+.atlas-message { align-self: flex-start; background: rgba(65, 105, 225, 0.1); border-left: 2px solid royalblue; }
 .chat-input-area { padding: 1rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 0.5rem; background: rgba(0, 0, 0, 0.3); }
 textarea { flex-grow: 1; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.8rem; color: var(--text-main); font-family: var(--font-body); resize: none; height: 50px; }
 
