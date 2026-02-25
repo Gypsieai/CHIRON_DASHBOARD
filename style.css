@@ -1,0 +1,191 @@
+/* --- THE SHADOW FOUNDRY (CHIRON v2.0) --- */
+/* Architecture: APEX NEXUS Cinematic Delight */
+
+:root {
+    --bg-deep: #050505;
+    --bg-panel: rgba(15, 15, 18, 0.7);
+    --border-glow: rgba(176, 38, 255, 0.4);
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    
+    --text-main: #E0E0E0;
+    --text-muted: #888888;
+    
+    --accent-chiron: #37176e; 
+    --accent-nexus: #30c3c3;  
+    --accent-danger: #ff4444; /* For Catharsis Burner */
+    
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: var(--bg-deep);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    height: 100vh;
+    overflow: hidden; /* Prevent scrolling, true dashboard feel */
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Holographic Background Grid --- */
+.hologram-grid {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background-image: 
+        linear-gradient(var(--border-subtle) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1; opacity: 0.15; pointer-events: none;
+}
+
+/* --- 6-Breath Metronome Lock --- */
+body.locked .app-header, body.locked .dashboard-container { filter: blur(10px); pointer-events: none; }
+.overlay-screen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.85); -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 1s ease;
+}
+.overlay-screen.active { opacity: 1; pointer-events: all; }
+
+.metronome-container { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+.metronome-container h2 { font-family: var(--font-heading); color: var(--accent-nexus); font-size: 2rem; }
+.metronome-container p { color: var(--text-muted); }
+.breathe-circle {
+    width: 200px; height: 200px; border-radius: 50%;
+    background: transparent; border: 2px solid var(--accent-nexus);
+    color: var(--text-main); font-size: 1.5rem; font-family: var(--font-heading);
+    cursor: pointer; cursor: grab; transition: transform 0.1s;
+    box-shadow: 0 0 30px rgba(48, 195, 195, 0.2);
+    display: flex; justify-content: center; align-items: center;
+}
+.breathe-circle:active { cursor: grabbing; border-color: var(--accent-chiron); }
+.breathe-circle.inhaling { animation: expand 4s linear forwards; box-shadow: 0 0 50px rgba(55, 23, 110, 0.8); }
+.breathe-circle.exhaling { animation: contract 4s linear forwards; box-shadow: 0 0 20px rgba(48, 195, 195, 0.2); }
+
+@keyframes expand { to { transform: scale(1.5); } }
+@keyframes contract { from { transform: scale(1.5); } to { transform: scale(1); } }
+
+/* --- App Header --- */
+.app-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1rem 2rem; border-bottom: 1px solid var(--border-glow);
+    background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    transition: filter 0.5s;
+}
+
+.brand { display: flex; align-items: center; gap: 1rem; }
+.logo-mark { font-size: 2rem; color: var(--accent-nexus); text-shadow: 0 0 15px var(--accent-nexus); }
+.brand h1 { font-family: var(--font-heading); font-weight: 600; font-size: 1.5rem; letter-spacing: 2px; }
+.system-status { display: flex; align-items: center; gap: 1rem; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-muted); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--accent-nexus); box-shadow: 0 0 8px var(--accent-nexus); animation: pulse 2s infinite; }
+.lock-btn { background: none; border: 1px solid var(--border-subtle); color: var(--text-muted); border-radius: 4px; padding: 4px; cursor: pointer; }
+
+@keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
+
+/* --- Main Dashboard Grid (3 Columns) --- */
+.dashboard-container {
+    display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 1.5rem;
+    padding: 1.5rem; flex-grow: 1; height: calc(100vh - 70px);
+    transition: filter 0.5s;
+}
+.column-left, .column-middle, .column-right { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+/* Panels */
+.panel {
+    background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 10px;
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); flex-grow: 1;
+}
+.panel-header {
+    padding: 1rem; border-bottom: 1px solid var(--border-subtle);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.panel-header h2 { font-family: var(--font-heading); font-size: 1rem; font-weight: 500; color: var(--accent-nexus); }
+
+/* Buttons */
+.icon-btn { background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; }
+.icon-btn:hover { color: var(--text-main); }
+.primary-btn { background: transparent; border: 1px solid var(--accent-nexus); color: var(--accent-nexus); padding: 0.5rem 1rem; border-radius: 4px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+.primary-btn:hover { background: var(--accent-nexus); color: black; box-shadow: 0 0 15px rgba(48, 195, 195, 0.4); }
+
+/* --- Feature 5: Tarot Sync --- */
+.tarot-panel { flex-grow: 0; min-height: 150px; }
+.tarot-display { padding: 1rem; text-align: center; }
+.tarot-display.empty { opacity: 0.5; }
+.card-title { font-family: var(--font-heading); color: var(--accent-chiron); font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: bold; }
+.card-desc { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; }
+
+/* --- Chat Interface --- */
+.chat-history { flex-grow: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+.message { max-width: 85%; padding: 0.8rem 1rem; border-radius: 6px; line-height: 1.4; font-size: 0.9rem; }
+.system-init { align-self: center; background: transparent; border: 1px solid var(--border-glow); color: var(--accent-nexus); font-family: monospace; font-size: 0.8rem; text-align: center; }
+.user-message { align-self: flex-end; background: rgba(255, 255, 255, 0.05); border-left: 2px solid var(--text-muted); }
+.chiron-message { align-self: flex-start; background: rgba(55, 23, 110, 0.2); border-left: 2px solid var(--accent-chiron); }
+.chat-input-area { padding: 1rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 0.5rem; background: rgba(0, 0, 0, 0.3); }
+textarea { flex-grow: 1; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.8rem; color: var(--text-main); font-family: var(--font-body); resize: none; height: 50px; }
+
+/* --- Tabs --- */
+.inventory-tabs { display: flex; border-bottom: 1px solid var(--border-subtle); background: rgba(0, 0, 0, 0.3); }
+.tab-btn { flex: 1; background: none; border: none; padding: 0.8rem; color: var(--text-muted); font-size: 0.8rem; border-bottom: 2px solid transparent; cursor: pointer; }
+.tab-btn.active { color: var(--accent-nexus); border-bottom: 2px solid var(--accent-nexus); }
+.tab-content { display: none; flex-grow: 1; padding: 1.5rem; overflow-y: auto; flex-direction: column; gap: 1rem; }
+.tab-content.active { display: flex; }
+.instruction { font-size: 0.85rem; color: var(--text-muted); font-style: italic; text-align: center; }
+
+/* --- Feature 1: Somatic Heatmap --- */
+.body-map-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; }
+.somatic-svg { width: 100%; max-width: 250px; height: auto; }
+.body-part { stroke: var(--border-subtle); stroke-width: 2; fill: rgba(0,0,0,0.5); cursor: pointer; transition: all 0.3s ease; }
+.body-part:hover { stroke: var(--accent-nexus); fill: rgba(48, 195, 195, 0.2); }
+.body-part.selected { stroke: var(--accent-chiron); fill: rgba(55, 23, 110, 0.6); box-shadow: 0 0 20px var(--accent-chiron); }
+.intensity-slider { display: flex; align-items: center; gap: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem; }
+.intensity-slider input[type=range] { flex-grow: 1; accent-color: var(--accent-chiron); }
+
+/* --- Feature 3: Constellation Graph --- */
+.constellation-canvas { width: 100%; height: 100%; min-height: 400px; border-radius: 6px; background: rgba(0,0,0,0.4); }
+
+/* --- Journal Editor --- */
+.journal-editor input { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.8rem; color: var(--text-main); margin-bottom: 0.5rem; width: 100%; }
+.journal-editor textarea { height: 120px; width: 100%; margin-bottom: 1rem; }
+.saved-entries { display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem; }
+.journal-entry-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 6px; }
+.journal-entry-card h3 { font-size: 0.9rem; color: var(--accent-nexus); margin-bottom: 0.3rem; }
+.journal-tags { font-size: 0.75rem; color: var(--accent-chiron); margin-bottom: 0.5rem; }
+.journal-entry-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+/* --- Feature 2: Audio Void --- */
+.audio-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; flex-grow: 1; }
+.waveform-visualizer { width: 100%; height: 100px; background: rgba(0,0,0,0.5); border-radius: 6px; border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;}
+.waveform-bar { width: 4px; background: var(--accent-chiron); margin: 0 2px; border-radius: 2px; transition: height 0.1s; }
+.record-btn { background: transparent; border: 2px solid var(--accent-nexus); color: var(--accent-nexus); padding: 1rem 2rem; border-radius: 50px; font-size: 1.1rem; cursor: pointer; }
+.stop-btn { background: var(--accent-danger); border: none; color: white; padding: 1rem 2rem; border-radius: 50px; font-size: 1.1rem; cursor: pointer; animation: pulseRed 1.5s infinite; }
+.hidden { display: none !important; }
+.saved-audio { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; }
+.audio-track { width: 100%; }
+.audio-entry-card { background: rgba(255, 255, 255, 0.02); padding: 1rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.5rem; }
+.audio-entry-card span { font-size: 0.8rem; color: var(--text-muted); }
+
+@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+
+/* --- Feature 4: Catharsis Burner --- */
+.burner-container { display: flex; flex-direction: column; gap: 1rem; height: 100%; }
+.burner-textarea { flex-grow: 1; border-color: rgba(255, 68, 68, 0.3); color: #ff8888; font-size: 1.2rem; background: rgba(30, 0, 0, 0.5); }
+.burner-textarea:focus { border-color: var(--accent-danger); box-shadow: 0 0 15px rgba(255,68,68,0.2) inset; }
+.burn-btn { background: var(--accent-danger); border: none; color: white; padding: 1rem; border-radius: 4px; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
+.burn-btn:hover { background: #ff2222; box-shadow: 0 0 20px var(--accent-danger); }
+
+/* Burn Animation */
+.burning { animation: burnAway 2s ease forwards; pointer-events: none; }
+@keyframes burnAway {
+    0% { filter: blur(0); opacity: 1; transform: scale(1); color: #ff8888; text-shadow: none; }
+    50% { filter: blur(5px); transform: scale(1.05); color: #ff4444; text-shadow: 0 -10px 20px #ff0000; }
+    100% { filter: blur(20px); opacity: 0; transform: scale(1.1) translateY(-50px); color: transparent; }
+}

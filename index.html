@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHIRON | The Shadow Foundry</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Load local libraries for features -->
+    <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script> <!-- Wrapper for IndexedDB -->
+</head>
+<body class="locked"> <!-- Start locked for the 6-Breath Metronome -->
+
+    <div class="hologram-grid"></div>
+
+    <!-- 6-Breath Metronome Lock Screen -->
+    <div id="metronome-overlay" class="overlay-screen active">
+        <div class="metronome-container">
+            <h2>Regulate The Nervous System</h2>
+            <p>CHIRON requires integration before excavation.</p>
+            <p>Click and hold to inhale. Release to exhale. Complete 6 cycles.</p>
+            <button id="breathe-circle" class="breathe-circle">
+                <span id="cycle-count">0 / 6</span>
+            </button>
+            <p id="breathe-instruction" class="breathe-instruction">Click and hold to Inhale</p>
+        </div>
+    </div>
+
+    <!-- Zero-Knowledge Encryption Setup Screen (Future expansion hook) -->
+    <div id="crypto-overlay" class="overlay-screen hidden">
+        <div class="crypto-container">
+            <h2>Secure The Vault</h2>
+            <p>Set a local decryption key. If lost, the data is gone forever.</p>
+            <input type="password" id="master-key" placeholder="Enter Vault Key...">
+            <button id="unlock-vault" class="primary-btn">Unlock</button>
+        </div>
+    </div>
+
+    <!-- API Key Configuration Modal -->
+    <div id="settings-overlay" class="overlay-screen hidden">
+        <div class="crypto-container">
+            <h2>Neural Link Configuration</h2>
+            <p>Enter your Gemini API Key to activate The Shadow Interface. Keys are stored locally.</p>
+            <input type="password" id="api-key-input" placeholder="Enter Gemini API Key...">
+            <button id="save-api-key" class="primary-btn">Activate Link</button>
+            <button id="close-settings" class="icon-btn text-muted" style="margin-top: 1rem;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <header class="app-header">
+        <div class="brand">
+            <span class="logo-mark">☤</span>
+            <h1>CHIRON</h1>
+        </div>
+        <div class="system-status">
+            <span class="status-dot online"></span>
+            <span class="status-text">SHADOW FOUNDRY ONLINE</span>
+            <button id="open-settings" class="icon-btn" title="Configure Interface">⚙️</button>
+            <button id="lock-session" class="lock-btn" title="Re-lock Vault">🔒</button>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        
+        <!-- Left Column: Interaction & Somatics -->
+        <div class="column-left">
+            
+            <!-- Jungian Tarot Synchronicity -->
+            <section class="panel tarot-panel">
+                <div class="panel-header">
+                    <h2>Synchronicity Frame</h2>
+                    <button class="icon-btn" id="draw-card">🎴 Draw Archetype</button>
+                </div>
+                <div id="tarot-display" class="tarot-display empty">
+                    <p class="card-title" id="card-title">Awaiting Draw...</p>
+                    <p class="card-desc" id="card-desc"></p>
+                </div>
+            </section>
+
+            <!-- The Shadow Interface (Chat) -->
+            <section class="panel chat-panel">
+                <div class="panel-header">
+                    <h2>The Shadow Interface</h2>
+                    <button id="clear-chat" class="icon-btn" title="Clear History">⟲ Reset</button>
+                </div>
+                
+                <div class="chat-history" id="chat-history">
+                    <div class="message chiron-message system-init">
+                        I am CHIRON. The shadow you bring today—what form does it wear?
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <textarea id="chat-input" placeholder="Initiate sequence..."></textarea>
+                    <button id="send-btn" class="primary-btn">Transmit</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Middle Column: The Somatic Heatmap & Graph -->
+        <div class="column-middle">
+            <section class="panel map-panel">
+                <div class="inventory-tabs">
+                    <button class="tab-btn active" data-tab="somatic">Somatic Heatmap</button>
+                    <button class="tab-btn" data-tab="constellation">Constellation</button>
+                </div>
+
+                <!-- Somatic Heatmap Tab -->
+                <div class="tab-content active" id="tab-somatic">
+                    <p class="instruction">Where does the trauma sit in the body?</p>
+                    <div class="body-map-container" id="body-map-container">
+                        <!-- Simple SVG representation for clickable regions -->
+                        <svg viewBox="0 0 200 400" class="somatic-svg">
+                            <!-- Head -->
+                            <circle cx="100" cy="50" r="30" class="body-part" data-part="head"/>
+                            <!-- Throat -->
+                            <rect x="85" y="80" width="30" height="20" class="body-part" data-part="throat"/>
+                            <!-- Chest/Heart -->
+                            <ellipse cx="100" cy="140" rx="45" ry="40" class="body-part" data-part="chest"/>
+                            <!-- Gut/Stomach -->
+                            <ellipse cx="100" cy="220" rx="40" ry="35" class="body-part" data-part="gut"/>
+                            <!-- Arms -->
+                            <path d="M 50 120 Q 20 200 30 280" stroke="currentColor" stroke-width="20" fill="none" class="body-part" data-part="left-arm" stroke-linecap="round"/>
+                            <path d="M 150 120 Q 180 200 170 280" stroke="currentColor" stroke-width="20" fill="none" class="body-part" data-part="right-arm" stroke-linecap="round"/>
+                            <!-- Legs -->
+                            <path d="M 80 250 Q 70 350 70 380" stroke="currentColor" stroke-width="25" fill="none" class="body-part" data-part="left-leg" stroke-linecap="round"/>
+                            <path d="M 120 250 Q 130 350 130 380" stroke="currentColor" stroke-width="25" fill="none" class="body-part" data-part="right-leg" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="intensity-slider">
+                        <label for="somatic-intensity">Intensity:</label>
+                        <input type="range" id="somatic-intensity" min="1" max="10" value="5">
+                        <button id="log-somatic" class="primary-btn small">Log Sensation</button>
+                    </div>
+                </div>
+
+                <!-- Shadow Constellation Tab -->
+                <div class="tab-content" id="tab-constellation">
+                    <p class="instruction">The Architecture of the Shadow.</p>
+                    <canvas id="constellation-canvas" class="constellation-canvas"></canvas>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column: The Inventory (Journal, Audio, Burner) -->
+        <div class="column-right">
+            <section class="panel inventory-panel">
+                <div class="inventory-tabs">
+                    <button class="tab-btn active" data-tab="journal">Text</button>
+                    <button class="tab-btn" data-tab="audio">Audio Void</button>
+                    <button class="tab-btn" data-tab="burner">Catharsis Burner</button>
+                </div>
+
+                <!-- Text Journal -->
+                <div class="tab-content active" id="tab-journal">
+                    <div class="journal-editor">
+                        <input type="text" id="journal-title" placeholder="Entry Title (e.g., The Midnight Trigger)">
+                        <input type="text" id="journal-tags" placeholder="Tags (comma separated)">
+                        <textarea id="journal-body" placeholder="Document the behavior, the rationalization, and the underlying feeling..."></textarea>
+                        <button id="save-journal" class="primary-btn">Commit to Vault</button>
+                    </div>
+                    <div class="saved-entries" id="saved-entries"></div>
+                </div>
+
+                <!-- Audio Void -->
+                <div class="tab-content" id="tab-audio">
+                    <div class="audio-container">
+                        <p class="instruction">Speak the pre-verbal trauma. Recorded natively, saved locally.</p>
+                        <div class="waveform-visualizer" id="waveform"></div>
+                        <div class="audio-controls">
+                            <button id="record-btn" class="record-btn">⏺ Start Recording</button>
+                            <button id="stop-record-btn" class="stop-btn hidden">⏹ Stop</button>
+                        </div>
+                        <div class="saved-audio" id="saved-audio"></div>
+                    </div>
+                </div>
+
+                <!-- Catharsis Burner -->
+                <div class="tab-content" id="tab-burner">
+                    <div class="burner-container">
+                        <p class="instruction text-error">Write the rage. Burn it to ash. Nothing is saved.</p>
+                        <textarea id="burner-input" class="burner-textarea" placeholder="Unleash the shadow here..."></textarea>
+                        <button id="burn-btn" class="burn-btn">🔥 INCINERATE</button>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
