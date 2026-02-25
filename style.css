@@ -84,6 +84,30 @@ body.locked .app-header, body.locked .dashboard-container { filter: blur(10px); 
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--accent-nexus); box-shadow: 0 0 8px var(--accent-nexus); animation: pulse 2s infinite; }
 .lock-btn { background: none; border: 1px solid var(--border-subtle); color: var(--text-muted); border-radius: 4px; padding: 4px; cursor: pointer; }
 
+/* Agent Selector Dropdown */
+.agent-dropdown {
+    background: rgba(0, 0, 0, 0.6);
+    color: var(--accent-nexus);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s;
+}
+
+.agent-dropdown:hover, .agent-dropdown:focus {
+    border-color: var(--accent-nexus);
+    box-shadow: 0 0 10px rgba(48, 195, 195, 0.2);
+}
+
+.agent-dropdown option {
+    background: var(--bg-deep);
+    color: var(--text-main);
+}
+
 @keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
 
 /* --- Main Dashboard Grid (3 Columns) --- */
@@ -115,6 +139,7 @@ body.locked .app-header, body.locked .dashboard-container { filter: blur(10px); 
 .icon-btn:hover { color: var(--text-main); }
 .primary-btn { background: transparent; border: 1px solid var(--accent-nexus); color: var(--accent-nexus); padding: 0.5rem 1rem; border-radius: 4px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
 .primary-btn:hover { background: var(--accent-nexus); color: black; box-shadow: 0 0 15px rgba(48, 195, 195, 0.4); }
+.settings-cancel-btn { margin-top: 1rem; }
 
 /* --- Feature 5: Tarot Sync --- */
 .tarot-panel { flex-grow: 0; min-height: 150px; }
@@ -129,6 +154,7 @@ body.locked .app-header, body.locked .dashboard-container { filter: blur(10px); 
 .system-init { align-self: center; background: transparent; border: 1px solid var(--border-glow); color: var(--accent-nexus); font-family: monospace; font-size: 0.8rem; text-align: center; }
 .user-message { align-self: flex-end; background: rgba(255, 255, 255, 0.05); border-left: 2px solid var(--text-muted); }
 .chiron-message { align-self: flex-start; background: rgba(55, 23, 110, 0.2); border-left: 2px solid var(--accent-chiron); }
+.bridge-message { align-self: flex-start; background: rgba(48, 195, 195, 0.1); border-left: 2px solid var(--accent-nexus); }
 .chat-input-area { padding: 1rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 0.5rem; background: rgba(0, 0, 0, 0.3); }
 textarea { flex-grow: 1; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.8rem; color: var(--text-main); font-family: var(--font-body); resize: none; height: 50px; }
 

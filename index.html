@@ -43,19 +43,23 @@
             <p>Enter your Gemini API Key to activate The Shadow Interface. Keys are stored locally.</p>
             <input type="password" id="api-key-input" placeholder="Enter Gemini API Key...">
             <button id="save-api-key" class="primary-btn">Activate Link</button>
-            <button id="close-settings" class="icon-btn text-muted" style="margin-top: 1rem;">Cancel</button>
+            <button id="close-settings" class="icon-btn text-muted settings-cancel-btn">Cancel</button>
         </div>
     </div>
 
     <!-- Main Dashboard -->
     <header class="app-header">
         <div class="brand">
-            <span class="logo-mark">☤</span>
-            <h1>CHIRON</h1>
+            <span class="logo-mark" id="agent-logo">☤</span>
+            <h1 id="agent-title">CHIRON</h1>
         </div>
         <div class="system-status">
+            <select id="agent-selector" class="agent-dropdown" title="Select Interface Agent">
+                <option value="chiron">CHIRON (Wounded Healer)</option>
+                <option value="bridge">BRIDGE (HQ Commander)</option>
+            </select>
             <span class="status-dot online"></span>
-            <span class="status-text">SHADOW FOUNDRY ONLINE</span>
+            <span class="status-text" id="status-text">SHADOW FOUNDRY ONLINE</span>
             <button id="open-settings" class="icon-btn" title="Configure Interface">⚙️</button>
             <button id="lock-session" class="lock-btn" title="Re-lock Vault">🔒</button>
         </div>
