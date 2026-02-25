@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHIRON | Esoteric Chamber</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/localforage@1.10.0/dist/localforage.min.js"></script>
+    <style>
+        /* ─── ESOTERIC CHAMBER OVERRIDES ─── */
+        body { overflow: auto; background: #030307; }
+
+        .esoteric-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 2rem; border-bottom: 1px solid rgba(176, 38, 255, 0.3);
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(12px);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .esoteric-header .brand { display: flex; align-items: center; gap: 0.8rem; }
+        .esoteric-header h1 { font-family: 'Cinzel', serif; font-size: 1.2rem; color: #c084fc; letter-spacing: 0.2em; }
+        .back-btn {
+            background: rgba(176,38,255,0.1); border: 1px solid rgba(176,38,255,0.3);
+            color: #c084pc; padding: 0.5rem 1.2rem; border-radius: 4px; cursor: pointer;
+            font-size: 0.85rem; color: #c084fc; text-decoration: none; letter-spacing: 0.1em;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(176,38,255,0.25); }
+
+        .chamber-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 1.5rem;
+            padding: 1.5rem 2rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        .chamber-panel {
+            background: rgba(10, 5, 20, 0.85);
+            border: 1px solid rgba(176, 38, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex; flex-direction: column; gap: 1rem;
+            backdrop-filter: blur(10px);
+            position: relative; overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .chamber-panel:hover { border-color: rgba(176, 38, 255, 0.5); }
+        .chamber-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(176,38,255,0.5), transparent);
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif; font-size: 1rem; color: #c084fc;
+            letter-spacing: 0.15em; display: flex; align-items: center; gap: 0.6rem;
+            border-bottom: 1px solid rgba(176,38,255,0.15); padding-bottom: 0.8rem;
+        }
+        .panel-title .panel-icon { font-size: 1.3rem; }
+
+        /* ─── TAROT READER ─── */
+        .tarot-spread {
+            display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+            padding: 1rem 0;
+        }
+        .tarot-card-slot {
+            width: 90px; text-align: center; cursor: pointer;
+        }
+        .tarot-card-slot label {
+            font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.1em;
+            display: block; margin-bottom: 0.5rem; text-transform: uppercase;
+        }
+        .tarot-card {
+            width: 90px; height: 150px; border-radius: 8px;
+            border: 1px solid rgba(176,38,255,0.4);
+            background: linear-gradient(135deg, #1a0a3e 0%, #0d0518 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; cursor: pointer; transition: all 0.6s;
+            transform-style: preserve-3d; position: relative;
+            box-shadow: 0 0 15px rgba(176,38,255,0.15);
+        }
+        .tarot-card.flipped { transform: rotateY(180deg); }
+        .tarot-card .card-back, .tarot-card .card-front {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            border-radius: 8px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 0.5rem;
+        }
+        .tarot-card .card-back { background: radial-gradient(ellipse at center, #2d1060 0%, #0a0215 100%); font-size: 1.8rem; }
+        .tarot-card .card-front {
+            background: linear-gradient(160deg, #1a0a3e, #06020f);
+            transform: rotateY(180deg); font-size: 1.5rem;
+        }
+        .tarot-card .card-front .card-name {
+            font-family: 'Cinzel', serif; font-size: 0.55rem; color: #c084fc;
+            margin-top: 0.4rem; text-align: center; letter-spacing: 0.05em;
+        }
+        .tarot-interpretation {
+            background: rgba(176,38,255,0.05); border: 1px solid rgba(176,38,255,0.15);
+            border-radius: 8px; padding: 1rem; font-size: 0.85rem; line-height: 1.6;
+            color: #c9c9e0; min-height: 80px; font-style: italic;
+        }
+        .tarot-controls { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+        .tarot-spread-select {
+            flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(176,38,255,0.3);
+            color: var(--text-main); padding: 0.5rem; border-radius: 6px; font-size: 0.8rem;
+        }
+        .esoteric-btn {
+            background: rgba(176,38,255,0.1); border: 1px solid rgba(176,38,255,0.4);
+            color: #c084fc; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+            font-size: 0.85rem; letter-spacing: 0.1em; transition: all 0.3s; font-family: inherit;
+        }
+        .esoteric-btn:hover { background: rgba(176,38,255,0.25); box-shadow: 0 0 10px rgba(176,38,255,0.3); }
+        .esoteric-btn.active { background: rgba(176,38,255,0.3); border-color: #c084fc; }
+
+        /* ─── OUIJA BOARD ─── */
+        .ouija-board {
+            background: linear-gradient(160deg, #1a0f05 0%, #0a0805 100%);
+            border: 2px solid rgba(139, 90, 43, 0.4); border-radius: 16px;
+            padding: 1.2rem; text-align: center; position: relative; flex: 1;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+        .ouija-title { font-family: 'Cinzel', serif; color: #c8a96e; font-size: 1.5rem; letter-spacing: 0.3em; margin-bottom: 0.5rem; }
+        .ouija-letters {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
+            padding: 0.5rem 0;
+        }
+        .ouija-letter {
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            font-family: 'Cinzel', serif; font-size: 0.8rem; color: #c8a96e;
+            border: 1px solid rgba(139,90,43,0.2); border-radius: 3px;
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .ouija-letter.highlight {
+            background: rgba(200, 169, 110, 0.3);
+            border-color: #c8a96e;
+            color: #fff;
+            box-shadow: 0 0 8px rgba(200,169,110,0.6);
+        }
+        .ouija-numbers { display: flex; justify-content: center; gap: 4px; padding: 0.3rem 0; }
+        .ouija-number {
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            font-family: 'Cinzel', serif; font-size: 0.7rem; color: #c8a96e;
+            border: 1px solid rgba(139,90,43,0.2); cursor: pointer; border-radius: 3px;
+        }
+        .ouija-specials { display: flex; justify-content: space-between; padding: 0.3rem 0.5rem; }
+        .ouija-special { font-family: 'Cinzel', serif; font-size: 0.75rem; color: #c8a96e; }
+        .planchette {
+            width: 50px; height: 50px; position: relative; margin: 0.5rem auto;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .planchette-body {
+            width: 50px; height: 50px; background: radial-gradient(ellipse at 40% 35%, rgba(255,255,255,0.15) 0%, rgba(200,169,110,0.05) 100%);
+            border: 1px solid rgba(200,169,110,0.4); border-radius: 50% 50% 50% 20%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px rgba(200,169,110,0.3);
+            animation: planchette-float 3s ease-in-out infinite;
+        }
+        .planchette-eye { width: 14px; height: 14px; border: 1px solid rgba(200,169,110,0.7); border-radius: 50%; background: rgba(200,169,110,0.1); }
+        @keyframes planchette-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+        .ouija-message {
+            font-family: 'Cinzel', serif; font-size: 1.2rem; color: #c8a96e;
+            letter-spacing: 0.3em; min-height: 2rem; padding: 0.5rem;
+            text-shadow: 0 0 10px rgba(200,169,110,0.5);
+        }
+        .ouija-question {
+            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(139,90,43,0.3);
+            color: #c8a96e; padding: 0.6rem; border-radius: 6px; font-family: inherit;
+            font-size: 0.85rem; margin-bottom: 0.5rem; placeholder-color: rgba(200,169,110,0.4);
+        }
+        .ouija-question::placeholder { color: rgba(200,169,110,0.4); }
+
+        /* ─── MIRROR SCRYING ─── */
+        .scrying-mirror {
+            flex: 1; position: relative; border-radius: 50%;
+            width: 220px; height: 220px; margin: 0 auto;
+            background: radial-gradient(ellipse at 35% 35%, rgba(50,30,80,0.8) 0%, #000 70%);
+            border: 2px solid rgba(176,38,255,0.4);
+            box-shadow: 0 0 30px rgba(176,38,255,0.2), inset 0 0 50px rgba(0,0,0,0.8);
+            overflow: hidden; cursor: pointer;
+        }
+        .mirror-mist {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: radial-gradient(ellipse at 40% 40%, rgba(176,38,255,0.05) 0%, transparent 70%);
+            animation: mist-shift 6s ease-in-out infinite;
+        }
+        .mirror-mist-2 {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: radial-gradient(ellipse at 65% 60%, rgba(48,195,195,0.04) 0%, transparent 60%);
+            animation: mist-shift 9s ease-in-out infinite reverse;
+        }
+        @keyframes mist-shift { 0%,100%{transform:scale(1) rotate(0deg)} 50%{transform:scale(1.1) rotate(10deg)} }
+        .mirror-symbol {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; opacity: 0.2; animation: symbol-pulse 4s ease-in-out infinite;
+        }
+        @keyframes symbol-pulse { 0%,100%{opacity:0.1} 50%{opacity:0.35} }
+        .mirror-shimmer {
+            position: absolute; top: 15%; left: 20%; width: 25%; height: 40%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+            border-radius: 50%; transform: rotate(-20deg);
+        }
+        .mirror-video {
+            position: absolute; inset: 0; border-radius: 50%; object-fit: cover;
+            width: 100%; height: 100%; opacity: 0;
+            filter: contrast(0.6) brightness(0.4) saturate(0.2) hue-rotate(240deg);
+            transition: opacity 1s;
+        }
+        .mirror-video.active { opacity: 1; }
+        .scrying-message {
+            text-align: center; font-family: 'Cinzel', serif; font-size: 0.85rem;
+            color: #c084fc; font-style: italic; letter-spacing: 0.1em; min-height: 3rem;
+            line-height: 1.5;
+        }
+        .scrying-controls { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+        /* ─── ENVIRONMENT SCANNER ─── */
+        .scanner-viewport {
+            flex: 1; border-radius: 8px; overflow: hidden; position: relative;
+            background: #000; min-height: 200px;
+            border: 1px solid rgba(48,195,195,0.3);
+        }
+        #env-video {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: contrast(1.1) brightness(0.9);
+        }
+        .scanner-overlay {
+            position: absolute; inset: 0; pointer-events: none;
+        }
+        .scan-line {
+            position: absolute; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(48,195,195,0.8), transparent);
+            animation: scan-sweep 3s linear infinite;
+        }
+        @keyframes scan-sweep { 0%{top:0;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:100%;opacity:0} }
+        .corner-bracket {
+            position: absolute; width: 20px; height: 20px;
+            border-color: rgba(48,195,195,0.8); border-style: solid;
+        }
+        .corner-bracket.tl { top:8px; left:8px; border-width:2px 0 0 2px; }
+        .corner-bracket.tr { top:8px; right:8px; border-width:2px 2px 0 0; }
+        .corner-bracket.bl { bottom:8px; left:8px; border-width:0 0 2px 2px; }
+        .corner-bracket.br { bottom:8px; right:8px; border-width:0 2px 2px 0; }
+        .scan-crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 30px; height: 30px;
+        }
+        .scan-crosshair::before, .scan-crosshair::after {
+            content: ''; position: absolute; background: rgba(48,195,195,0.5);
+        }
+        .scan-crosshair::before { width: 1px; height: 100%; left: 50%; }
+        .scan-crosshair::after { height: 1px; width: 100%; top: 50%; }
+        .detection-box {
+            position: absolute; border: 1px solid rgba(48,195,195,0.7);
+            border-radius: 2px; pointer-events: none; transition: all 0.3s;
+            display: none;
+        }
+        .detection-label {
+            position: absolute; top: -20px; left: 0;
+            background: rgba(0,0,0,0.8); color: #30c3c3;
+            font-size: 0.7rem; padding: 2px 6px; letter-spacing: 0.05em;
+        }
+        .scanner-readout {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+        }
+        .readout-item {
+            background: rgba(48,195,195,0.05); border: 1px solid rgba(48,195,195,0.15);
+            border-radius: 6px; padding: 0.5rem; font-size: 0.75rem;
+        }
+        .readout-label { color: var(--text-muted); font-size: 0.65rem; letter-spacing: 0.1em; }
+        .readout-value { color: #30c3c3; font-weight: 600; margin-top: 0.2rem; }
+        .scanner-analysis {
+            background: rgba(48,195,195,0.05); border: 1px solid rgba(48,195,195,0.15);
+            border-radius: 8px; padding: 0.8rem; font-size: 0.8rem; line-height: 1.5;
+            color: #c9c9e0; font-family: monospace; max-height: 100px; overflow-y: auto;
+        }
+
+        /* ─── AMBIENT EFFECTS ─── */
+        .star-field {
+            position: fixed; inset: 0; pointer-events: none; z-index: -1;
+            background: radial-gradient(ellipse at 20% 50%, rgba(30,15,60,0.3) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 20%, rgba(10,40,60,0.2) 0%, transparent 50%);
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            .chamber-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="star-field"></div>
+<div class="hologram-grid"></div>
+
+<header class="esoteric-header">
+    <div class="brand">
+        <span style="font-size:1.5rem">🔮</span>
+        <h1>ESOTERIC CHAMBER</h1>
+    </div>
+    <nav style="display:flex;gap:1rem;align-items:center">
+        <span id="agent-label" style="font-size:0.8rem;color:var(--text-muted);letter-spacing:0.1em">CHIRON ONLINE</span>
+        <a href="index.html" class="back-btn">← SHADOW FOUNDRY</a>
+    </nav>
+</header>
+
+<div class="chamber-grid">
+
+    <!-- ═══ PANEL 1: TAROT READER ═══ -->
+    <div class="chamber-panel">
+        <div class="panel-title">
+            <span class="panel-icon">🃏</span>
+            ARCANA ORACLE — Tarot Reader
+        </div>
+        <div class="tarot-controls">
+            <select class="tarot-spread-select" id="spread-type">
+                <option value="single">Single Card — Daily Draw</option>
+                <option value="past-present-future">Past / Present / Future</option>
+                <option value="celtic">Celtic Cross (5 Cards)</option>
+            </select>
+            <button class="esoteric-btn" id="draw-tarot-btn">✦ Draw Cards</button>
+        </div>
+        <div class="tarot-spread" id="tarot-spread-display">
+            <!-- Cards injected here -->
+        </div>
+        <div class="tarot-interpretation" id="tarot-reading">
+            <em style="color:var(--text-muted)">Draw cards to receive your reading...</em>
+        </div>
+        <button class="esoteric-btn" id="interpret-tarot-btn" style="display:none">🔮 Interpret with CHIRON</button>
+    </div>
+
+    <!-- ═══ PANEL 2: OUIJA / WEDGY BOARD ═══ -->
+    <div class="chamber-panel">
+        <div class="panel-title">
+            <span class="panel-icon">🕍</span>
+            WEDGY BOARD — Spirit Channel
+        </div>
+        <input type="text" class="ouija-question" id="ouija-question" placeholder="Ask your question to the void...">
+        <div class="ouija-board">
+            <div class="ouija-title">OUIJA</div>
+            <div class="ouija-message" id="ouija-message">_ _ _ _ _ _ _</div>
+            <div class="planchette" id="planchette">
+                <div class="planchette-body">
+                    <div class="planchette-eye"></div>
+                </div>
+            </div>
+            <div class="ouija-letters" id="ouija-letters"></div>
+            <div class="ouija-numbers" id="ouija-numbers"></div>
+            <div class="ouija-specials">
+                <span class="ouija-special">YES</span>
+                <span class="ouija-special">GOOD BYE</span>
+                <span class="ouija-special">NO</span>
+            </div>
+        </div>
+        <div style="display:flex;gap:0.8rem">
+            <button class="esoteric-btn" id="ouija-ask-btn" style="flex:1">👻 Channel the Void</button>
+            <button class="esoteric-btn" id="ouija-clear-btn">✕ Clear</button>
+        </div>
+    </div>
+
+    <!-- ═══ PANEL 3: MIRROR SCRYING ═══ -->
+    <div class="chamber-panel">
+        <div class="panel-title">
+            <span class="panel-icon">🪞</span>
+            BLACK MIRROR — Scrying Glass
+        </div>
+        <div class="scrying-mirror" id="scrying-mirror">
+            <video id="scrying-video" class="mirror-video" autoplay playsinline muted></video>
+            <div class="mirror-mist"></div>
+            <div class="mirror-mist-2"></div>
+            <div class="mirror-shimmer"></div>
+            <div class="mirror-symbol" id="mirror-symbol">☽</div>
+        </div>
+        <div class="scrying-message" id="scrying-message">
+            <em style="color:var(--text-muted)">Gaze into the void. What looks back?</em>
+        </div>
+        <div class="scrying-controls">
+            <button class="esoteric-btn" id="scry-activate-btn">🪞 Activate Mirror</button>
+            <button class="esoteric-btn" id="scry-read-btn">🔮 Receive Vision</button>
+            <button class="esoteric-btn" id="scry-symbol-btn">✦ Cycle Sigil</button>
+        </div>
+    </div>
+
+    <!-- ═══ PANEL 4: ENVIRONMENT SCANNER ═══ -->
+    <div class="chamber-panel">
+        <div class="panel-title">
+            <span class="panel-icon">👁️</span>
+            NEXUS EYE — Environment Scanner
+        </div>
+        <div class="scanner-viewport" id="scanner-viewport">
+            <video id="env-video" autoplay playsinline muted></video>
+            <canvas id="env-canvas" style="display:none"></canvas>
+            <div class="scanner-overlay">
+                <div class="scan-line" id="scan-line" style="display:none"></div>
+                <div class="corner-bracket tl" id="cb-tl" style="display:none"></div>
+                <div class="corner-bracket tr" id="cb-tr" style="display:none"></div>
+                <div class="corner-bracket bl" id="cb-bl" style="display:none"></div>
+                <div class="corner-bracket br" id="cb-br" style="display:none"></div>
+                <div class="scan-crosshair" id="scan-crosshair" style="display:none"></div>
+                <div class="detection-box" id="detection-box-1"><div class="detection-label" id="det-label-1">ENERGY NODE</div></div>
+                <div class="detection-box" id="detection-box-2"><div class="detection-label" id="det-label-2">RESONANCE</div></div>
+            </div>
+            <div id="scanner-idle" style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--text-muted);font-size:0.85rem;letter-spacing:0.1em">
+                👁️ INACTIVE — ACTIVATE TO SCAN
+            </div>
+        </div>
+        <div class="scanner-readout" id="scanner-readout" style="display:none">
+            <div class="readout-item"><div class="readout-label">ENERGY FIELD</div><div class="readout-value" id="rd-energy">—</div></div>
+            <div class="readout-item"><div class="readout-label">LIGHT FREQ</div><div class="readout-value" id="rd-light">—</div></div>
+            <div class="readout-item"><div class="readout-label">MOVEMENT</div><div class="readout-value" id="rd-motion">—</div></div>
+            <div class="readout-item"><div class="readout-label">ANOMALIES</div><div class="readout-value" id="rd-anomaly">—</div></div>
+        </div>
+        <div class="scanner-analysis" id="scanner-analysis" style="display:none">
+            <span style="color:#30c3c3">NEXUS.EYE > </span><span id="analysis-text">Scanning environment...</span>
+        </div>
+        <div style="display:flex;gap:0.8rem;flex-wrap:wrap">
+            <button class="esoteric-btn" id="env-activate-btn" style="flex:1">🎥 Activate Scanner</button>
+            <button class="esoteric-btn" id="env-analyse-btn" style="display:none">🧿 Esoteric Analysis</button>
+            <button class="esoteric-btn" id="env-capture-btn" style="display:none">📸 Capture Frame</button>
+        </div>
+    </div>
+
+</div><!-- /chamber-grid -->
+
+<script>
+// ═══════════════════════════════════════════════════
+// APEX NEXUS — ESOTERIC CHAMBER ENGINE
+// ═══════════════════════════════════════════════════
+
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+async function getApiKey() {
+    return await localforage.getItem('gemini_api_key');
+}
+
+async function callGemini(prompt, systemPrompt = null) {
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+        return "⚡ No API key detected. Return to the Shadow Foundry and configure your Neural Link first.";
+    }
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.9, maxOutputTokens: 600 }
+    };
+    if (systemPrompt) {
+        payload.systemInstruction = { parts: [{ text: systemPrompt }] };
+    }
+    try {
+        const res = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message);
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "The void offers silence.";
+    } catch(e) {
+        return `Error reaching the void: ${e.message}`;
+    }
+}
+
+// ═══ TAROT ENGINE ═══
+const TAROT_DECK = [
+    { name: "The Fool", emoji: "🌀", meaning: "New beginnings, innocence, spontaneity. The leap into the unknown." },
+    { name: "The Magician", emoji: "🪄", meaning: "Willpower, skill, resourcefulness. You have the tools — use them." },
+    { name: "The High Priestess", emoji: "🌙", meaning: "Intuition, mystery, the unconscious. Trust what cannot be spoken." },
+    { name: "The Empress", emoji: "🌿", meaning: "Abundance, nature, creativity. The body remembers what the mind forgets." },
+    { name: "The Emperor", emoji: "🏛️", meaning: "Authority, structure, protection. Build the walls you need." },
+    { name: "The Hierophant", emoji: "⛪", meaning: "Tradition, conformity, morality. What beliefs were installed in you?" },
+    { name: "The Lovers", emoji: "💞", meaning: "Love, harmony, relationships. The choice that defines everything." },
+    { name: "The Chariot", emoji: "⚔️", meaning: "Control, willpower, victory. Drive the contradiction forward." },
+    { name: "Strength", emoji: "🦁", meaning: "Patience, influence, compassion. The power that doesn't need to shout." },
+    { name: "The Hermit", emoji: "🕯️", meaning: "Soul-searching, introspection, solitude. The answer is already within you." },
+    { name: "Wheel of Fortune", emoji: "☸️", meaning: "Change, cycles, fate. The wheel turns whether you hold on or let go." },
+    { name: "Justice", emoji: "⚖️", meaning: "Fairness, truth, cause and effect. The universe keeps its accounts." },
+    { name: "The Hanged Man", emoji: "🙃", meaning: "Suspension, surrender, letting go. See it from the angle that terrifies you." },
+    { name: "Death", emoji: "💀", meaning: "Transformation, endings, transition. Nothing that mattered dies — it changes form." },
+    { name: "Temperance", emoji: "✨", meaning: "Balance, moderation, patience. Find the middle that holds everything." },
+    { name: "The Devil", emoji: "😈", meaning: "Bondage, addiction, shadow self. What are you serving that you pretend to control?" },
+    { name: "The Tower", emoji: "⚡", meaning: "Disaster, upheaval, revelation. The false structure must fall." },
+    { name: "The Star", emoji: "⭐", meaning: "Hope, faith, renewal. After the tower, this is what remains." },
+    { name: "The Moon", emoji: "🌑", meaning: "Illusion, fear, the unconscious. What hunts you in the dark you created?" },
+    { name: "The Sun", emoji: "☀️", meaning: "Joy, success, positivity. Rare and earned — do not confuse it with performance." },
+    { name: "Judgement", emoji: "📯", meaning: "Reflection, reckoning, absolution. The call you've been pretending not to hear." },
+    { name: "The World", emoji: "🌍", meaning: "Completion, integration, accomplishment. You have earned this moment of wholeness." },
+    { name: "Ace of Cups", emoji: "💧", meaning: "New love, compassion, creativity. The well is full — now choose to drink." },
+    { name: "Ten of Swords", emoji: "🗡️", meaning: "Painful endings, defeat, crisis. It is already done. Now you can begin." },
+    { name: "Five of Pentacles", emoji: "❄️", meaning: "Financial loss, poverty, isolation. The door is open. Can you see it?" },
+    { name: "Three of Wands", emoji: "🔥", meaning: "Progress, expansion, foresight. What you started is already moving." },
+    { name: "Two of Cups", emoji: "🤝", meaning: "Unified love, partnership, mutual attraction. Two shadows becoming one." },
+    { name: "Nine of Wands", emoji: "🛡️", meaning: "Resilience, courage, persistence. You are tired but you are still standing." },
+];
+
+let drawnCards = [];
+
+function drawFromDeck(n) {
+    const shuffled = [...TAROT_DECK].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, n);
+}
+
+function renderTarotSpread(cards, spreadType) {
+    const container = document.getElementById('tarot-spread-display');
+    const labels = {
+        single: ['Present'],
+        'past-present-future': ['Past', 'Present', 'Future'],
+        celtic: ['Present', 'Challenge', 'Subconscious', 'Past', 'Future']
+    };
+    const spreadLabels = labels[spreadType] || cards.map((_,i) => `Card ${i+1}`);
+    container.innerHTML = '';
+    drawnCards = cards;
+    cards.forEach((card, i) => {
+        const reversed = Math.random() > 0.7;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tarot-card-slot';
+        wrapper.innerHTML = `
+            <label>${spreadLabels[i] || 'Card ' + (i+1)}</label>
+            <div class="tarot-card" id="card-${i}" data-idx="${i}" style="${reversed ? 'color:rgba(255,100,100,0.8)' : ''}">
+                <div class="card-back">✦</div>
+                <div class="card-front">
+                    <span>${card.emoji}</span>
+                    <div class="card-name">${card.name}${reversed ? ' ®' : ''}</div>
+                </div>
+            </div>
+        `;
+        wrapper.querySelector('.tarot-card').addEventListener('click', (e) => {
+            e.currentTarget.classList.toggle('flipped');
+        });
+        container.appendChild(wrapper);
+    });
+    document.getElementById('interpret-tarot-btn').style.display = 'block';
+}
+
+document.getElementById('draw-tarot-btn').addEventListener('click', () => {
+    const spreadType = document.getElementById('spread-type').value;
+    const counts = { single: 1, 'past-present-future': 3, celtic: 5 };
+    const n = counts[spreadType] || 1;
+    const cards = drawFromDeck(n);
+    renderTarotSpread(cards, spreadType);
+    document.getElementById('tarot-reading').innerHTML = '<em style="color:var(--text-muted)">Click cards to reveal them. Then click "Interpret with CHIRON"...</em>';
+    // Auto-flip after a beat
+    setTimeout(() => {
+        drawnCards.forEach((_, i) => {
+            setTimeout(() => document.getElementById(`card-${i}`)?.classList.add('flipped'), i * 300);
+        });
+    }, 300);
+});
+
+document.getElementById('interpret-tarot-btn').addEventListener('click', async () => {
+    const readingEl = document.getElementById('tarot-reading');
+    readingEl.innerHTML = '<em style="color:var(--text-muted)">Reading the arcana...</em>';
+    const cardNames = drawnCards.map(c => `${c.name} (${c.meaning})`).join('\n');
+    const spreadType = document.getElementById('spread-type').value;
+    const prompt = `I drew these tarot cards in a ${spreadType} spread:\n${cardNames}\n\nGive me a deep Jungian psycho-esoteric interpretation of this spread. Be poetic, precise, and do not be soft. Speak as CHIRON — the wounded healer.`;
+    const sysPrompt = `You are CHIRON, the Wounded Healer. You specialize in Jungian depth psychology and archetypal symbolism. Interpret tarot spreads through the lens of shadow work, individuation, and the unconscious. Be poetic, ruthless, and precise. Maximum 250 words.`;
+    const response = await callGemini(prompt, sysPrompt);
+    readingEl.innerHTML = response.replace(/\n/g, '<br>');
+});
+
+// ═══ OUIJA / WEDGY ENGINE ═══
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const lettersContainer = document.getElementById('ouija-letters');
+const numbersContainer = document.getElementById('ouija-numbers');
+
+alphabet.split('').forEach(letter => {
+    const el = document.createElement('div');
+    el.className = 'ouija-letter'; el.textContent = letter; el.dataset.char = letter;
+    lettersContainer.appendChild(el);
+});
+
+'0123456789'.split('').forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'ouija-number'; el.textContent = n; el.dataset.char = n;
+    numbersContainer.appendChild(el);
+});
+
+let ouijaAnimating = false;
+
+async function channelVoid() {
+    if (ouijaAnimating) return;
+    const question = document.getElementById('ouija-question').value.trim();
+    const msgEl = document.getElementById('ouija-message');
+    if (!question) { msgEl.textContent = '...ASK...'; return; }
+
+    ouijaAnimating = true;
+    msgEl.textContent = '...';
+
+    const sysPrompt = `You are the void speaking through a Ouija board. You respond in short, cryptic, uppercase messages — maximum 8 words, space-separated letters sometimes. Keep it eerie, accurate, and unsettling. No punctuation. No explanations.`;
+    const response = await callGemini(`Question: "${question}" — respond as the spirit board would. Keep it very short (3-8 words max, cryptic, uppercase).`, sysPrompt);
+    const words = response.toUpperCase().replace(/[^A-Z0-9\s]/g, '').trim();
+    const chars = words.split('').filter(c => c !== '');
+
+    msgEl.textContent = '';
+    let displayText = '';
+
+    for (let i = 0; i < Math.min(chars.length, 30); i++) {
+        const char = chars[i];
+        // Highlight the letter on the board
+        document.querySelectorAll('.ouija-letter, .ouija-number').forEach(el => {
+            el.classList.toggle('highlight', el.dataset.char === char);
+        });
+        displayText += char === ' ' ? ' ' : char;
+        msgEl.textContent = displayText;
+        await new Promise(r => setTimeout(r, 200 + Math.random() * 150));
+    }
+
+    document.querySelectorAll('.ouija-letter, .ouija-number').forEach(el => el.classList.remove('highlight'));
+    ouijaAnimating = false;
+}
+
+document.getElementById('ouija-ask-btn').addEventListener('click', channelVoid);
+document.getElementById('ouija-question').addEventListener('keydown', e => { if (e.key === 'Enter') channelVoid(); });
+document.getElementById('ouija-clear-btn').addEventListener('click', () => {
+    document.getElementById('ouija-message').textContent = '_ _ _ _ _ _ _';
+    document.getElementById('ouija-question').value = '';
+    document.querySelectorAll('.ouija-letter, .ouija-number').forEach(el => el.classList.remove('highlight'));
+});
+
+// ═══ MIRROR SCRYING ENGINE ═══
+const SIGILS = ['☽', '⛤', '✦', '☿', '♆', '⊕', '☯', '⚔', '⚗'];
+let currentSigil = 0;
+let scryingVideoStream = null;
+
+document.getElementById('scry-symbol-btn').addEventListener('click', () => {
+    currentSigil = (currentSigil + 1) % SIGILS.length;
+    document.getElementById('mirror-symbol').textContent = SIGILS[currentSigil];
+});
+
+document.getElementById('scry-activate-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('scry-activate-btn');
+    const video = document.getElementById('scrying-video');
+    if (scryingVideoStream) {
+        scryingVideoStream.getTracks().forEach(t => t.stop());
+        scryingVideoStream = null;
+        video.classList.remove('active');
+        btn.textContent = '🪞 Activate Mirror';
+        btn.classList.remove('active');
+        return;
+    }
+    try {
+        scryingVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = scryingVideoStream;
+        video.classList.add('active');
+        btn.textContent = '🪞 Deactivate Mirror';
+        btn.classList.add('active');
+        document.getElementById('scrying-message').innerHTML = '<em style="color:#c084fc">Your reflection gazes back. What does it know of you?</em>';
+    } catch {
+        document.getElementById('scrying-message').textContent = 'Camera access denied. The void requires permission.';
+    }
+});
+
+document.getElementById('scry-read-btn').addEventListener('click', async () => {
+    const msgEl = document.getElementById('scrying-message');
+    msgEl.innerHTML = '<em style="color:var(--text-muted)">The mirror speaks...</em>';
+    const sysPrompt = `You are a dark mirror oracle. You deliver cryptic, poetic visions when someone gazes into you. Speak in the second person. Reference shadows, the unconscious, duality, and what is unseen. Be unsettling and profound. Maximum 100 words. Jungian undertones.`;
+    const prompt = "Someone is gazing into the scrying mirror. Deliver a vision appropriate for this moment of introspection.";
+    const response = await callGemini(prompt, sysPrompt);
+    msgEl.innerHTML = response.replace(/\n/g, '<br>');
+});
+
+// ═══ ENVIRONMENT SCANNER ENGINE ═══
+let envStream = null;
+let scanInterval = null;
+let frameCount = 0;
+
+const ENERGY_LEVELS = ['NOMINAL', 'ELEVATED', 'FLUCTUATING', 'DENSE', 'SCATTERED', 'RESONANT'];
+const ANOMALY_STATES = ['NONE', 'TRACE', 'MINOR', 'DETECTED', 'SIGNIFICANT'];
+const ANALYSES = [
+    "Shadow density nominal. No residual trauma signatures detected in the ambient field.",
+    "Light frequency shows torsion fields. Possible energetic imprint in sector 3.",
+    "Electromagnetic variance suggests recent emotional discharge. Residue present.",
+    "Environmental scan complete. Two convergence points noted at 30° and 220°.",
+    "Baseline established. Deviation from mean suggests active archetypal influence.",
+    "Anomaly cluster detected. Cross-reference with lunar phase data recommended.",
+    "Pattern recognition: spatial energy pooling in lower left quadrant. Investigate.",
+    "Field coherence at 87%. Unusual stability — this space holds something old.",
+];
+
+document.getElementById('env-activate-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('env-activate-btn');
+    const video = document.getElementById('env-video');
+    const idleMsg = document.getElementById('scanner-idle');
+    const scanLine = document.getElementById('scan-line');
+
+    if (envStream) {
+        envStream.getTracks().forEach(t => t.stop());
+        envStream = null;
+        clearInterval(scanInterval);
+        video.srcObject = null;
+        btn.textContent = '🎥 Activate Scanner';
+        btn.classList.remove('active');
+        idleMsg.style.display = 'flex';
+        document.getElementById('scanner-readout').style.display = 'none';
+        document.getElementById('scanner-analysis').style.display = 'none';
+        ['cb-tl','cb-tr','cb-bl','cb-br','scan-crosshair'].forEach(id => document.getElementById(id).style.display = 'none');
+        scanLine.style.display = 'none';
+        document.getElementById('env-analyse-btn').style.display = 'none';
+        document.getElementById('env-capture-btn').style.display = 'none';
+        return;
+    }
+
+    try {
+        envStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = envStream;
+        idleMsg.style.display = 'none';
+        btn.textContent = '🎥 Deactivate Scanner';
+        btn.classList.add('active');
+        ['cb-tl','cb-tr','cb-bl','cb-br','scan-crosshair'].forEach(id => document.getElementById(id).style.display = 'block');
+        scanLine.style.display = 'block';
+        document.getElementById('scanner-readout').style.display = 'grid';
+        document.getElementById('scanner-analysis').style.display = 'block';
+        document.getElementById('env-analyse-btn').style.display = 'block';
+        document.getElementById('env-capture-btn').style.display = 'block';
+
+        // Live readout simulation
+        scanInterval = setInterval(() => {
+            frameCount++;
+            document.getElementById('rd-energy').textContent = ENERGY_LEVELS[Math.floor(Math.random() * ENERGY_LEVELS.length)];
+            document.getElementById('rd-light').textContent = (300 + Math.floor(Math.random() * 400)) + ' nm';
+            document.getElementById('rd-motion').textContent = Math.random() > 0.7 ? 'ACTIVE' : 'STATIC';
+            document.getElementById('rd-anomaly').textContent = ANOMALY_STATES[Math.floor(Math.random() * ANOMALY_STATES.length)];
+        }, 2000);
+
+        document.getElementById('analysis-text').textContent = 'Camera active. Field scan initialised...';
+    } catch {
+        idleMsg.textContent = '⚠️ Camera permission denied.';
+    }
+});
+
+document.getElementById('env-analyse-btn').addEventListener('click', async () => {
+    const analysisEl = document.getElementById('analysis-text');
+    analysisEl.textContent = 'Analysing environment through esoteric lens...';
+
+    const sysPrompt = `You are NEXUS EYE — an esoteric environment scanner. You interpret physical spaces for energetic, archetypal, and psychic properties. Reference: energy fields, residual imprints, ley lines, shadow projections, elemental signatures. Keep it short (80 words max), technical-sounding but mystical. Use terminology like "torsion fields", "shadow imprint", "energetic coherence".`;
+    const prompt = "Analyse the currently active environment scan. Report findings.";
+    const response = await callGemini(prompt, sysPrompt);
+    analysisEl.textContent = response;
+
+    // Randomly show detection boxes
+    const box1 = document.getElementById('detection-box-1');
+    const box2 = document.getElementById('detection-box-2');
+    const viewport = document.getElementById('scanner-viewport');
+    const vw = viewport.offsetWidth;
+    const vh = viewport.offsetHeight;
+
+    box1.style.cssText = `display:block;left:${10 + Math.random()*30}%;top:${10+Math.random()*30}%;width:${60+Math.random()*80}px;height:${40+Math.random()*60}px`;
+    box2.style.cssText = `display:block;left:${50+Math.random()*25}%;top:${40+Math.random()*30}%;width:${50+Math.random()*70}px;height:${35+Math.random()*50}px`;
+    const labels = ['ENERGY NODE', 'RESIDUAL IMPRINT', 'SHADOW FIELD', 'RESONANCE POINT', 'TORSION ANOMALY'];
+    document.getElementById('det-label-1').textContent = labels[Math.floor(Math.random() * labels.length)];
+    document.getElementById('det-label-2').textContent = labels[Math.floor(Math.random() * labels.length)];
+    setTimeout(() => { box1.style.display='none'; box2.style.display='none'; }, 8000);
+});
+
+document.getElementById('env-capture-btn').addEventListener('click', () => {
+    const video = document.getElementById('env-video');
+    const canvas = document.getElementById('env-canvas');
+    if (!video.srcObject) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.filter = 'contrast(1.2) brightness(0.7) saturate(0.3) hue-rotate(200deg)';
+    ctx.drawImage(video, 0, 0);
+    const link = document.createElement('a');
+    link.download = `nexus_scan_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+});
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded', async () => {
+    const key = await localforage.getItem('gemini_api_key');
+    document.getElementById('agent-label').textContent = key ? 'CHIRON ONLINE' : 'NO NEURAL LINK';
+});
+</script>
+</body>
+</html>
